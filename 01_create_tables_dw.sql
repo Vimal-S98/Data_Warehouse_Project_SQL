@@ -17,6 +17,7 @@ CREATE TABLE skills_dim (
     type        VARCHAR
 );
 
+
 CREATE TABLE job_postings_fact (
     job_id                  INTEGER     PRIMARY KEY,
     company_id              INTEGER,
