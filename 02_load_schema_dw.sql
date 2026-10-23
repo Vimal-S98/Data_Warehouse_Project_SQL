@@ -40,7 +40,7 @@ SELECT
     job_via, job_schedule_type, job_work_from_home,search_location,
     job_posted_date, job_no_degree_mention, job_health_insurance,
     job_country, salary_rate, salary_year_avg, salary_hour_avg
-FROM read_csv('https://storage.googleapis.com/sql_de/job_postings_fact.csv', AUTO_DETECT=true)
+FROM read_csv('https://storage.googleapis.com/sql_de/job_postings_fact.csv', AUTO_DETECT=true);
 
 
 
@@ -49,7 +49,7 @@ SELECT '=== Loading skills_job_dim table ===' AS info;
 INSERT INTO skills_job_dim (skill_id, job_id)
 SELECT
     skill_id, job_id
-FROM read_csv('https://storage.googleapis.com/sql_de/skills_job_dim.csv', AUTO_DETECT=true)
+FROM read_csv('https://storage.googleapis.com/sql_de/skills_job_dim.csv', AUTO_DETECT=true);
 
 
 
