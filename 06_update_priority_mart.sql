@@ -1,0 +1,91 @@
+-- Step 6: Mart - Update priority roles mart
+
+SELECT '=== Updating Roles for Priority Mart ===' AS info;
+
+-- Update Senior Data Engineer to lvl 1
+UPDATE priority_mart.priority_roles
+SET priority_lvl = 1
+WHERE role_name = 'Senior Data Engineer';   
+
+-- Add data scientist with priority lvl of 2 and data analyst with priority lvl 3
+INSERT INTO priority_mart.priority_roles (role_id, role_name, priority_lvl)
+VALUES 
+(4, 'Data Scientist', 2),
+(5, 'Data Analyst', 3);
+
+-- Delete software engineer
+DELETE FROM priority_mart.priority_roles
+WHERE role_name = 'Software Engineer';
+
+-- Data Validation
+SELECT '=== Priority Roles Sample ===' AS info;
+SELECT * FROM priority_mart.priority_roles;
+
+
+
+
+---------- Create Temp Table ----------
+SELECT '=== Creating Temp Source Table for Priority Mart ===' AS info;
+
+CREATE OR REPLACE TEMP TABLE src_priority_jobs AS 
+SELECT
+    jpf.job_id,
+    jpf.job_title_short,
+    cd.name AS company_name,
+    jpf.job_posted_date,
+    jpf.salary_year_avg,
+    r.priority_lvl,
+    CURRENT_TIMESTAMP AS updated_at
+FROM job_postings_fact AS jpf
+LEFT JOIN company_dim AS cd    
+    ON jpf.company_id = cd.company_id
+INNER JOIN priority_mart.priority_roles AS r 
+    ON jpf.job_title_short = r.role_name;
+
+
+
+-- Use Merge into to merge priority snapshot and Temp Table
+SELECT '=== Batch Updating priority_jobs_snapshot for Priorirty Mart ===' AS info;
+
+MERGE INTO priority_mart.priority_jobs_snapshot AS tgt
+USING src_priority_jobs AS src  
+ON tgt.job_id = src.job_id
+
+WHEN MATCHED AND tgt.priority_lvl IS DISTINCT FROM src.priority_lvl THEN
+    UPDATE SET
+        priority_lvl = src.priority_lvl,
+        updated_at = src.updated_at
+
+WHEN NOT MATCHED THEN
+    INSERT (
+        job_id,
+        job_title_short,
+        company_name,
+        job_posted_date,
+        salary_year_avg,
+        priority_lvl,
+        updated_at
+    )
+    VALUES (
+        src.job_id,
+        src.job_title_short,
+        src.company_name,
+        src.job_posted_date,
+        src.salary_year_avg,
+        src.priority_lvl,
+        src.updated_at
+    )
+
+WHEN NOT MATCHED BY SOURCE THEN DELETE;
+
+
+-- Final Check Query
+SELECT '=== Sample query from updated priority_jobs_snapshot table ===' AS info;
+SELECT
+    job_title_short,
+    COUNT(*) AS job_count,
+    MIN(priority_lvl) AS priority_lvl,
+    MIN(updated_at) AS updated_at
+FROM priority_mart.priority_jobs_snapshot
+GROUP BY job_title_short
+ORDER BY job_count DESC;

@@ -79,21 +79,3 @@ SELECT '=== Skills Job Bridge Sample ===' AS info;
 SELECT * FROM skills_job_dim LIMIT 5;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
